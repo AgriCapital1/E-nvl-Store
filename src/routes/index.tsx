@@ -157,7 +157,6 @@ function HomePage() {
                 <Link
                   key={c}
                   to="/categories"
-                  search={{ c }}
                   className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                 >
                   {c}

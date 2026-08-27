@@ -6,9 +6,6 @@ import { useI18n } from "@/lib/i18n";
 import { APPS, CATEGORIES } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/categories")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    c: typeof search.c === "string" ? search.c : undefined,
-  }),
   head: () => ({
     meta: [
       { title: "Catégories — E'nvlé Store" },
@@ -31,8 +28,7 @@ export const Route = createFileRoute("/categories")({
 
 function CategoriesPage() {
   const { t } = useI18n();
-  const search = Route.useSearch();
-  const [active, setActive] = useState<string>(search.c ?? CATEGORIES[0] ?? "");
+  const [active, setActive] = useState<string>(CATEGORIES[0] ?? "");
   const apps = APPS.filter((a) => a.category === active);
 
   return (
