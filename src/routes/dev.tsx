@@ -1,15 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
-import {
-  UploadCloud,
-  FileCheck2,
-  ShieldCheck,
-  Wallet,
-  TrendingUp,
-  AlertTriangle,
-  RotateCcw,
-  Copy,
-} from "lucide-react";
+import { UploadCloud, FileCheck2, RotateCcw } from "lucide-react";
 import { DevShell } from "@/components/DevShell";
 import { PwaConverter } from "@/components/PwaConverter";
 import { useI18n } from "@/lib/i18n";
@@ -28,13 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import {
-  DEV_APPS,
-  DEV_PROFILE,
-  DEV_TRANSACTIONS,
-  DOWNLOADS_7D,
-  formatCount,
-} from "@/lib/mock-data";
+import { DEV_APPS, DEV_TRANSACTIONS, DOWNLOADS_7D, formatCount } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/dev")({
   head: () => ({
@@ -183,38 +168,6 @@ function DevDashboard() {
           </TabsContent>
       </Tabs>
     </DevShell>
-  );
-}
-
-function TokenBadge() {
-  return (
-    <button
-      type="button"
-      onClick={() => toast.success("Token API copié")}
-      className="surface-card flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-    >
-      <span className="font-mono">{DEV_PROFILE.apiToken}</span>
-      <Copy className="h-3.5 w-3.5" />
-    </button>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <div className="surface-card rounded-2xl p-5">
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="h-3.5 w-3.5 text-primary" /> {label}
-      </p>
-      <p className="mt-2 font-display text-2xl font-semibold">{value}</p>
-    </div>
   );
 }
 
