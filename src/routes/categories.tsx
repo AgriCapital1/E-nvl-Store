@@ -28,7 +28,7 @@ export const Route = createFileRoute("/categories")({
 
 function CategoriesPage() {
   const { t } = useI18n();
-  const [active, setActive] = useState<string>(CATEGORIES[0]);
+  const [active, setActive] = useState<string>(CATEGORIES[0] ?? "");
   const apps = APPS.filter((a) => a.category === active);
 
   return (
