@@ -14,6 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_versions: {
+        Row: {
+          apk_path: string | null
+          apk_size_bytes: number
+          checksum_sha256: string | null
+          crash_rate: number
+          created_at: string
+          developer_app_id: string
+          id: string
+          release_notes_en: string | null
+          release_notes_fr: string | null
+          scan_report: Json | null
+          scan_status: string
+          status: string
+          updated_at: string
+          version: string
+          version_code: number
+        }
+        Insert: {
+          apk_path?: string | null
+          apk_size_bytes?: number
+          checksum_sha256?: string | null
+          crash_rate?: number
+          created_at?: string
+          developer_app_id: string
+          id?: string
+          release_notes_en?: string | null
+          release_notes_fr?: string | null
+          scan_report?: Json | null
+          scan_status?: string
+          status?: string
+          updated_at?: string
+          version: string
+          version_code?: number
+        }
+        Update: {
+          apk_path?: string | null
+          apk_size_bytes?: number
+          checksum_sha256?: string | null
+          crash_rate?: number
+          created_at?: string
+          developer_app_id?: string
+          id?: string
+          release_notes_en?: string | null
+          release_notes_fr?: string | null
+          scan_report?: Json | null
+          scan_status?: string
+          status?: string
+          updated_at?: string
+          version?: string
+          version_code?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_versions_developer_app_id_fkey"
+            columns: ["developer_app_id"]
+            isOneToOne: false
+            referencedRelation: "developer_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean
+          name_en: string
+          name_fr: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name_en: string
+          name_fr: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name_en?: string
+          name_fr?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       developer_apps: {
         Row: {
           category: string | null
@@ -123,6 +221,73 @@ export type Database = {
           },
         ]
       }
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          store_app_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          store_app_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          store_app_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_store_app_id_fkey"
+            columns: ["store_app_id"]
+            isOneToOne: false
+            referencedRelation: "store_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      installs: {
+        Row: {
+          created_at: string
+          device_model: string | null
+          id: string
+          status: string
+          store_app_id: string
+          user_id: string | null
+          version: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_model?: string | null
+          id?: string
+          status?: string
+          store_app_id: string
+          user_id?: string | null
+          version?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_model?: string | null
+          id?: string
+          status?: string
+          store_app_id?: string
+          user_id?: string | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installs_store_app_id_fkey"
+            columns: ["store_app_id"]
+            isOneToOne: false
+            referencedRelation: "store_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_methods: {
         Row: {
           code: string
@@ -215,6 +380,261 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      pwa_builds: {
+        Row: {
+          app_name: string
+          artifact_path: string | null
+          artifact_size_bytes: number | null
+          created_at: string
+          developer_app_id: string | null
+          developer_id: string
+          error_code: string | null
+          error_message: string | null
+          finished_at: string | null
+          icon_path: string | null
+          id: string
+          options: Json
+          package_name: string
+          progress: number
+          queue_position: number | null
+          reference: string
+          source_url: string
+          started_at: string | null
+          status: string
+          theme_color: string | null
+          updated_at: string
+          worker_id: string | null
+        }
+        Insert: {
+          app_name: string
+          artifact_path?: string | null
+          artifact_size_bytes?: number | null
+          created_at?: string
+          developer_app_id?: string | null
+          developer_id: string
+          error_code?: string | null
+          error_message?: string | null
+          finished_at?: string | null
+          icon_path?: string | null
+          id?: string
+          options?: Json
+          package_name: string
+          progress?: number
+          queue_position?: number | null
+          reference?: string
+          source_url: string
+          started_at?: string | null
+          status?: string
+          theme_color?: string | null
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Update: {
+          app_name?: string
+          artifact_path?: string | null
+          artifact_size_bytes?: number | null
+          created_at?: string
+          developer_app_id?: string | null
+          developer_id?: string
+          error_code?: string | null
+          error_message?: string | null
+          finished_at?: string | null
+          icon_path?: string | null
+          id?: string
+          options?: Json
+          package_name?: string
+          progress?: number
+          queue_position?: number | null
+          reference?: string
+          source_url?: string
+          started_at?: string | null
+          status?: string
+          theme_color?: string | null
+          updated_at?: string
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pwa_builds_developer_app_id_fkey"
+            columns: ["developer_app_id"]
+            isOneToOne: false
+            referencedRelation: "developer_apps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pwa_builds_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          author_name: string
+          comment: string | null
+          created_at: string
+          developer_replied_at: string | null
+          developer_reply: string | null
+          helpful_count: number
+          id: string
+          language: string
+          rating: number
+          status: string
+          store_app_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          author_name?: string
+          comment?: string | null
+          created_at?: string
+          developer_replied_at?: string | null
+          developer_reply?: string | null
+          helpful_count?: number
+          id?: string
+          language?: string
+          rating: number
+          status?: string
+          store_app_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          comment?: string | null
+          created_at?: string
+          developer_replied_at?: string | null
+          developer_reply?: string | null
+          helpful_count?: number
+          id?: string
+          language?: string
+          rating?: number
+          status?: string
+          store_app_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_store_app_id_fkey"
+            columns: ["store_app_id"]
+            isOneToOne: false
+            referencedRelation: "store_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_apps: {
+        Row: {
+          apk_size_bytes: number
+          category_slug: string | null
+          current_version: string
+          description: string | null
+          developer_app_id: string
+          developer_id: string
+          downloads: number
+          downloads_24h: number
+          icon_path: string | null
+          id: string
+          is_featured: boolean
+          min_android: string | null
+          name: string
+          permissions: Json
+          price_fcfa: number
+          pricing_type: string
+          published_at: string
+          publisher_name: string
+          rating_average: number
+          rating_count: number
+          screenshots: Json
+          security_scan: string
+          short_description: string | null
+          slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          apk_size_bytes?: number
+          category_slug?: string | null
+          current_version?: string
+          description?: string | null
+          developer_app_id: string
+          developer_id: string
+          downloads?: number
+          downloads_24h?: number
+          icon_path?: string | null
+          id?: string
+          is_featured?: boolean
+          min_android?: string | null
+          name: string
+          permissions?: Json
+          price_fcfa?: number
+          pricing_type?: string
+          published_at?: string
+          publisher_name: string
+          rating_average?: number
+          rating_count?: number
+          screenshots?: Json
+          security_scan?: string
+          short_description?: string | null
+          slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          apk_size_bytes?: number
+          category_slug?: string | null
+          current_version?: string
+          description?: string | null
+          developer_app_id?: string
+          developer_id?: string
+          downloads?: number
+          downloads_24h?: number
+          icon_path?: string | null
+          id?: string
+          is_featured?: boolean
+          min_android?: string | null
+          name?: string
+          permissions?: Json
+          price_fcfa?: number
+          pricing_type?: string
+          published_at?: string
+          publisher_name?: string
+          rating_average?: number
+          rating_count?: number
+          screenshots?: Json
+          security_scan?: string
+          short_description?: string | null
+          slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_apps_category_slug_fkey"
+            columns: ["category_slug"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "store_apps_developer_app_id_fkey"
+            columns: ["developer_app_id"]
+            isOneToOne: true
+            referencedRelation: "developer_apps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_apps_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {
@@ -350,6 +770,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_profiles: {
+        Row: {
+          avatar_path: string | null
+          country: string | null
+          created_at: string
+          display_name: string
+          id: string
+          locale: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          country?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          locale?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_path?: string | null
+          country?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          locale?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -501,6 +954,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      become_developer: {
+        Args: { _country?: string; _display_name: string }
+        Returns: string
+      }
+      change_plan: { Args: { _plan_code: string }; Returns: Json }
+      complete_withdrawal: {
+        Args: { _external_reference: string; _withdrawal_id: string }
+        Returns: undefined
+      }
+      current_developer_id: { Args: never; Returns: string }
       developer_balances: {
         Args: { _developer_id: string }
         Returns: {
@@ -510,12 +973,54 @@ export type Database = {
           withdrawn: number
         }[]
       }
+      developer_usage: {
+        Args: { _developer_id: string }
+        Returns: {
+          app_count: number
+          app_limit: number
+          build_limit: number
+          builds_this_month: number
+          commission_rate: number
+          plan_code: string
+          storage_limit: number
+          storage_used: number
+        }[]
+      }
+      fail_withdrawal: {
+        Args: { _reason: string; _withdrawal_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      record_sale: {
+        Args: {
+          _developer_app_id: string
+          _external_reference?: string
+          _gross_amount: number
+          _provider_fee: number
+        }
+        Returns: string
+      }
+      refund_transaction: {
+        Args: { _transaction_id: string }
+        Returns: undefined
+      }
+      request_withdrawal: {
+        Args: {
+          _amount: number
+          _destination: string
+          _payout_method_code: string
+        }
+        Returns: Json
+      }
+      settle_transaction: {
+        Args: { _transaction_id: string }
+        Returns: undefined
       }
     }
     Enums: {
