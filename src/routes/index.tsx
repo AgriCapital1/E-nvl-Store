@@ -1,208 +1,191 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Zap, ShieldCheck, Smartphone, Flame } from "lucide-react";
-import { BrandFooter, BrandHeader } from "@/components/BrandHeader";
-import { AppTile } from "@/components/AppTile";
+import { Search, Star, Sparkles, Flame } from "lucide-react";
+import { AppTile, AppIcon } from "@/components/AppTile";
+import { StoreShell } from "@/components/StoreShell";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
 import { APPS, CATEGORIES, formatCount } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "E'nvlé AppHub — Le store d'apps africain, installation en 1 clic" },
+      { title: "E'nvlé Store — Découvrez et installez vos applications" },
       {
         name: "description",
         content:
-          "Découvrez et installez les apps créées en Côte d'Ivoire : téléchargement automatique, paiement mobile money, aucune carte bancaire requise.",
+          "Cherchez, découvrez et installez des applications en un clic : tendances, catégories, nouveautés et applications populaires.",
       },
-      { property: "og:title", content: "E'nvlé AppHub — Installer, c'est l'avoir" },
+      { property: "og:title", content: "E'nvlé Store — Découvrez et installez vos applications" },
       {
         property: "og:description",
-        content:
-          "Catalogue d'apps africaines vérifiées. Installation automatique en un clic, paiement mobile money.",
+        content: "Tendances, catégories et nouveautés : trouvez l'application qu'il vous faut.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Catalog,
+  component: HomePage,
 });
 
-type PriceFilter = "all" | "free" | "paid";
-
-function Catalog() {
+function HomePage() {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [price, setPrice] = useState<PriceFilter>("all");
+
+  const q = query.trim().toLowerCase();
+
+  const results = useMemo(() => {
+    if (!q) return [];
+    return APPS.filter(
+      (a) =>
+        a.name.toLowerCase().includes(q) ||
+        a.tagline.toLowerCase().includes(q) ||
+        a.category.toLowerCase().includes(q),
+    );
+  }, [q]);
 
   const trending = useMemo(
     () => [...APPS].sort((a, b) => b.downloads24h - a.downloads24h).slice(0, 3),
     [],
   );
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return APPS.filter((a) => {
-      if (category && a.category !== category) return false;
-      if (price === "free" && a.priceFcfa > 0) return false;
-      if (price === "paid" && a.priceFcfa === 0) return false;
-      if (!q) return true;
-      return (
-        a.name.toLowerCase().includes(q) ||
-        a.developer.toLowerCase().includes(q) ||
-        a.tagline.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q)
-      );
-    });
-  }, [query, category, price]);
+  const popular = useMemo(() => [...APPS].sort((a, b) => b.downloads - a.downloads).slice(0, 6), []);
+  const newest = useMemo(
+    () => [...APPS].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 3),
+    [],
+  );
+  const editorial = APPS[0];
 
   return (
-    <div className="min-h-screen">
-      <BrandHeader />
+    <StoreShell>
+      {/* Recherche + accroche */}
+      <section className="pt-8 sm:pt-12">
+        <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-5xl">
+          {t("home.title1")}{" "}
+          <span className="text-gradient-brand">{t("home.title2")}</span>
+        </h1>
+        <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+          {t("home.subtitle")}
+        </p>
 
-      <main className="mx-auto w-full max-w-6xl px-4">
-        <section className="py-14 sm:py-20">
-          <p className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs text-primary">
-            <Zap className="h-3.5 w-3.5" /> 30 minutes pour héberger
-          </p>
-          <h1 className="max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-            L'installer, <span className="text-gradient-brand">c'est l'avoir.</span>
-          </h1>
-          <p className="mt-4 max-w-xl text-base text-muted-foreground">
-            Le store des apps africaines. Un clic : téléchargement, installation et raccourci
-            sur l'écran d'accueil. Pas de carte bancaire, pas d'attente.
-          </p>
+        <div className="relative mt-6 max-w-xl">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("home.search")}
+            className="h-12 pl-9"
+            aria-label={t("home.search")}
+          />
+        </div>
+      </section>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Button variant="hero" size="xl" asChild>
-              <a href="#catalogue">Explorer le catalogue</a>
-            </Button>
-            <Button variant="outline" size="xl" asChild>
-              <Link to="/dev">Publier mon APK</Link>
-            </Button>
-          </div>
-
-          <dl className="mt-12 grid max-w-2xl grid-cols-2 gap-6 sm:grid-cols-3">
-            {[
-              { icon: Smartphone, k: "Installations", v: "387k" },
-              { icon: ShieldCheck, k: "Apps vérifiées", v: "5 / 6" },
-              { icon: Flame, k: "Téléchargements 24 h", v: "13k" },
-            ].map(({ icon: Icon, k, v }) => (
-              <div key={k}>
-                <dt className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Icon className="h-3.5 w-3.5 text-primary" /> {k}
-                </dt>
-                <dd className="mt-1 font-display text-2xl font-semibold">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        <section aria-labelledby="trending" className="pb-4">
-          <h2 id="trending" className="font-display text-lg font-semibold">
-            Tendances aujourd'hui
-          </h2>
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            {trending.map((app, i) => (
-              <Link
-                key={app.id}
-                to="/app/$appId"
-                params={{ appId: app.id }}
-                className="surface-card flex items-center gap-3 rounded-2xl p-4 transition-colors hover:border-primary/50"
-              >
-                <span className="font-display text-2xl font-bold text-gradient-brand">
-                  {i + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{app.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    +{formatCount(app.downloads24h)} installs / 24 h
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section id="catalogue" aria-labelledby="catalogue-title" className="scroll-mt-20 py-10">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <h2 id="catalogue-title" className="font-display text-lg font-semibold">
-              Catalogue
-            </h2>
-            <div className="relative w-full max-w-xs">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher une app, un dev…"
-                className="pl-9"
-                aria-label="Rechercher une application"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <FilterChip active={!category} onClick={() => setCategory(null)}>
-              Toutes
-            </FilterChip>
-            {CATEGORIES.map((c) => (
-              <FilterChip key={c} active={category === c} onClick={() => setCategory(c)}>
-                {c}
-              </FilterChip>
-            ))}
-            <span className="mx-1 hidden w-px bg-border sm:block" />
-            {(
-              [
-                ["all", "Tous les prix"],
-                ["free", "Gratuit"],
-                ["paid", "Payant"],
-              ] as const
-            ).map(([k, label]) => (
-              <FilterChip key={k} active={price === k} onClick={() => setPrice(k)}>
-                {label}
-              </FilterChip>
-            ))}
-          </div>
-
-          {filtered.length === 0 ? (
-            <p className="mt-10 text-sm text-muted-foreground">
-              Aucune app ne correspond à cette recherche.
-            </p>
+      {q ? (
+        <section className="py-8" aria-label={t("home.results")}>
+          <h2 className="font-display text-lg font-semibold">{t("home.results")}</h2>
+          {results.length === 0 ? (
+            <p className="mt-4 text-sm text-muted-foreground">{t("home.empty")}</p>
           ) : (
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filtered.map((app) => (
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {results.map((app) => (
                 <AppTile key={app.id} app={app} />
               ))}
             </div>
           )}
         </section>
-      </main>
+      ) : (
+        <>
+          {/* Sélection du moment */}
+          {editorial && (
+            <section className="py-8">
+              <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
+                <Sparkles className="h-4 w-4 text-primary" /> {t("home.editorial")}
+              </h2>
+              <Link
+                to="/app/$appId"
+                params={{ appId: editorial.id }}
+                className="surface-card mt-4 flex flex-col gap-4 rounded-2xl p-5 shadow-card transition-colors hover:border-primary/50 sm:flex-row sm:items-center"
+              >
+                <AppIcon app={editorial} size="lg" />
+                <div className="min-w-0">
+                  <p className="font-display text-lg font-semibold">{editorial.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{editorial.tagline}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">{t("home.editorialText")}</p>
+                </div>
+              </Link>
+            </section>
+          )}
 
-      <BrandFooter />
-    </div>
-  );
-}
+          {/* Tendances */}
+          <section className="py-4">
+            <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
+              <Flame className="h-4 w-4 text-primary" /> {t("home.trending")}
+            </h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {trending.map((app, i) => (
+                <Link
+                  key={app.id}
+                  to="/app/$appId"
+                  params={{ appId: app.id }}
+                  className="surface-card flex items-center gap-3 rounded-2xl p-4 transition-colors hover:border-primary/50"
+                >
+                  <span className="font-display text-2xl font-bold text-gradient-brand">
+                    {i + 1}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{app.name}</p>
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Star className="h-3 w-3 fill-accent text-accent" />
+                      {app.rating.toFixed(1)} · {formatCount(app.downloads)}{" "}
+                      {t("app.downloads")}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
 
-function FilterChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={
-        "rounded-full border px-3 py-1.5 text-xs transition-colors " +
-        (active
-          ? "border-primary/60 bg-primary/15 text-primary"
-          : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground")
-      }
-    >
-      {children}
-    </button>
+          {/* Catégories */}
+          <section className="py-8">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-display text-lg font-semibold">{t("home.categories")}</h2>
+              <Link to="/categories" className="text-xs text-primary hover:underline">
+                {t("home.seeAll")}
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {CATEGORIES.map((c) => (
+                <Link
+                  key={c}
+                  to="/categories"
+                  className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                >
+                  {c}
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* Populaires */}
+          <section className="py-4">
+            <h2 className="font-display text-lg font-semibold">{t("home.popular")}</h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {popular.map((app) => (
+                <AppTile key={app.id} app={app} />
+              ))}
+            </div>
+          </section>
+
+          {/* Nouveautés */}
+          <section className="py-8">
+            <h2 className="font-display text-lg font-semibold">{t("home.new")}</h2>
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {newest.map((app) => (
+                <AppTile key={app.id} app={app} />
+              ))}
+            </div>
+          </section>
+        </>
+      )}
+    </StoreShell>
   );
 }

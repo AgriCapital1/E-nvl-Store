@@ -1,16 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useState } from "react";
-import {
-  UploadCloud,
-  FileCheck2,
-  ShieldCheck,
-  Wallet,
-  TrendingUp,
-  AlertTriangle,
-  RotateCcw,
-  Copy,
-} from "lucide-react";
-import { BrandFooter, BrandHeader } from "@/components/BrandHeader";
+import { UploadCloud, FileCheck2, RotateCcw } from "lucide-react";
+import { DevShell } from "@/components/DevShell";
+import { PwaConverter } from "@/components/PwaConverter";
+import { useI18n } from "@/lib/i18n";
 import { AppIcon } from "@/components/AppTile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,54 +30,41 @@ import {
 export const Route = createFileRoute("/dev")({
   head: () => ({
     meta: [
-      { title: "Espace développeur — E'nvlé AppHub" },
+      { title: "E'nvlé Developers — Publier n'a jamais été aussi simple" },
       {
         name: "description",
         content:
-          "Publiez votre APK en 30 minutes : upload, scan antivirus, versions, analytics et retraits mobile money.",
+          "Convertissez votre PWA en APK, publiez vos applications, gérez vos versions, votre distribution et vos revenus.",
       },
-      { property: "og:title", content: "Espace développeur — E'nvlé AppHub" },
+      { property: "og:title", content: "E'nvlé Developers" },
       {
         property: "og:description",
-        content: "Upload d'APK, scan de sécurité, analytics et retraits mobile money.",
+        content: "Publier et distribuer une application Android depuis un seul espace.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DevDashboard,
 });
 
 function DevDashboard() {
+  const { t } = useI18n();
+
   return (
-    <div className="min-h-screen">
-      <BrandHeader />
-
-      <main className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight">
-              Espace <span className="text-gradient-brand">développeur</span>
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {DEV_PROFILE.name} · {DEV_PROFILE.whatsapp}
-            </p>
-          </div>
-          <TokenBadge />
-        </div>
-
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Stat label="Téléchargements 24 h" value="1 760" icon={TrendingUp} />
-          <Stat label="Utilisateurs actifs" value="9 240" icon={ShieldCheck} />
-          <Stat label="Solde disponible" value="184 500 F" icon={Wallet} />
-          <Stat label="Crash rate moyen" value="1,4 %" icon={AlertTriangle} />
-        </div>
-
-        <Tabs defaultValue="upload" className="mt-10">
+    <DevShell>
+      <Tabs defaultValue="pwa">
           <TabsList className="flex w-full flex-wrap justify-start">
-            <TabsTrigger value="upload">Upload APK</TabsTrigger>
-            <TabsTrigger value="apps">Mes apps</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="payouts">Retraits</TabsTrigger>
+            <TabsTrigger value="pwa">{t("dev.tab.pwa")}</TabsTrigger>
+            <TabsTrigger value="upload">{t("dev.tab.upload")}</TabsTrigger>
+            <TabsTrigger value="apps">{t("dev.tab.apps")}</TabsTrigger>
+            <TabsTrigger value="analytics">{t("dev.tab.analytics")}</TabsTrigger>
+            <TabsTrigger value="payouts">{t("dev.tab.payouts")}</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="pwa" className="mt-6">
+            <PwaConverter />
+          </TabsContent>
 
           <TabsContent value="upload" className="mt-6">
             <UploadPanel />
@@ -192,43 +172,8 @@ function DevDashboard() {
               </div>
             </div>
           </TabsContent>
-        </Tabs>
-      </main>
-
-      <BrandFooter />
-    </div>
-  );
-}
-
-function TokenBadge() {
-  return (
-    <button
-      type="button"
-      onClick={() => toast.success("Token API copié")}
-      className="surface-card flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
-    >
-      <span className="font-mono">{DEV_PROFILE.apiToken}</span>
-      <Copy className="h-3.5 w-3.5" />
-    </button>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <div className="surface-card rounded-2xl p-5">
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="h-3.5 w-3.5 text-primary" /> {label}
-      </p>
-      <p className="mt-2 font-display text-2xl font-semibold">{value}</p>
-    </div>
+      </Tabs>
+    </DevShell>
   );
 }
 

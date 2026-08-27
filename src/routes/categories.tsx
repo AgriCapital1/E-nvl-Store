@@ -8,16 +8,16 @@ import { APPS, CATEGORIES } from "@/lib/mock-data";
 export const Route = createFileRoute("/categories")({
   head: () => ({
     meta: [
-      { title: "Catégories d'apps — E'nvlé Store" },
+      { title: "Catégories — E'nvlé Store" },
       {
         name: "description",
         content:
-          "Parcourez les apps africaines par catégorie : jeux, productivité, éducation, finance, social et transport.",
+          "Parcourez les applications par univers : jeux, productivité, éducation, finance, social et transport.",
       },
-      { property: "og:title", content: "Catégories d'apps — E'nvlé Store" },
+      { property: "og:title", content: "Catégories — E'nvlé Store" },
       {
         property: "og:description",
-        content: "Explorez le catalogue E'nvlé par catégorie et installez en un clic.",
+        content: "Trouvez l'application qu'il vous faut, par catégorie.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -35,18 +35,18 @@ function CategoriesPage() {
     <StoreShell>
       <section className="py-8">
         <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-          {t("nav.categories")}
+          {t("cat.title")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{t("home.categories")}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("cat.subtitle")}</p>
 
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-6 -mx-4 flex gap-2 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
           {CATEGORIES.map((c) => (
             <button
               key={c}
               type="button"
               onClick={() => setActive(c)}
               className={
-                "rounded-full border px-4 py-2 text-sm transition-colors " +
+                "shrink-0 rounded-full border px-4 py-2 text-sm transition-colors " +
                 (active === c
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border text-muted-foreground hover:bg-secondary hover:text-foreground")
@@ -57,10 +57,14 @@ function CategoriesPage() {
           ))}
         </div>
 
+        <p className="mt-4 text-xs text-muted-foreground">
+          {apps.length} {t("cat.apps")}
+        </p>
+
         {apps.length === 0 ? (
-          <p className="mt-10 text-sm text-muted-foreground">{t("cat.empty")}</p>
+          <p className="mt-10 text-sm text-muted-foreground">{t("home.empty")}</p>
         ) : (
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {apps.map((app) => (
               <AppTile key={app.id} app={app} />
             ))}

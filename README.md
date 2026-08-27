@@ -1,6 +1,6 @@
 # E'nvlé Store
 
-📋 CAHIER DES CHARGES — E'nvlé AppHub
+📋 CAHIER DES CHARGES — E'nvlé Store
 1. VISION PRODUIT
 
 Slogan interne : "30 minutes pour héberger. L'installer, c'est l'avoir."
@@ -12,7 +12,7 @@ Utilisateur final → 1 clic → Auto-download, auto-install, auto-launch
 Zéro friction : pas de carte bancaire, pas de Gmail obligatoire, pas d'attente PlayStore
 2. ARCHITECTURE GLOBALE
 ┌─────────────────────────────────────────────────────────────┐
-│                   E'nvlé AppHub                              │
+│                   E'nvlé Store                              │
 ├──────────────────┬──────────────────┬──────────────────┐────┤
 │  DEVELOPER ZONE  │   APP CATALOG    │  INSTALLER SVC   │ BD │
 │  (Dashboard)     │   (User Store)   │  (Background DL) │    │
@@ -145,7 +145,7 @@ Workflow :
 6. Icon Shortcut:
    • Génère automatiquement shortcut sur écran d'accueil
    • Icône = icône app (extraite APK)
-   • Tooltip: "E'nvlé AppHub"
+   • Tooltip: "E'nvlé Store"
 
 Techniquement (CRITIQUE) :
 
@@ -507,7 +507,7 @@ Phase 3 (Year 2):
   - Faire partie du playstore comme alternative distribuée
   - Govern AI data (usage analytics → drive PL)
 10. FICHIERS À PRÉPARER
-📦 E'nvlé AppHub Repo (GitHub)
+📦 E'nvlé Store Repo (GitHub)
 ├── frontend/
 │   ├── public/
 │   ├── src/
