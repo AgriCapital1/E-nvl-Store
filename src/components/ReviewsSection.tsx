@@ -65,6 +65,10 @@ export function ReviewsSection({ app, admin = false }: { app: AppItem; admin?: b
   const [text, setText] = useState("");
   const [rating, setRating] = useState(5);
   const [moderating, setModerating] = useState(admin);
+  const [sort, setSort] = useState<"recent" | "best" | "worst">("recent");
+  const [starFilter, setStarFilter] = useState<number | null>(null);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 5;
 
   const approved = useMemo(() => reviews.filter((r) => r.status === "approved"), [reviews]);
   const pending = useMemo(() => reviews.filter((r) => r.status === "pending"), [reviews]);
@@ -81,10 +85,40 @@ export function ReviewsSection({ app, admin = false }: { app: AppItem; admin?: b
     }));
   }, [approved]);
 
+  const visible = useMemo(() => {
+    const list = starFilter ? approved.filter((r) => r.rating === starFilter) : approved;
+    const sorted = [...list];
+    if (sort === "recent") sorted.sort((a, b) => b.date.localeCompare(a.date));
+    if (sort === "best") sorted.sort((a, b) => b.rating - a.rating);
+    if (sort === "worst") sorted.sort((a, b) => a.rating - b.rating);
+    return sorted;
+  }, [approved, starFilter, sort]);
+
+  const paginated = visible.slice(0, page * PAGE_SIZE);
+
+  function isSpam(value: string): boolean {
+    const v = value.trim();
+    if (v.length < 8) return true;
+    if (/(https?:\/\/|www\.)/i.test(v)) return true;
+    if (/(.)\1{5,}/.test(v)) return true;
+    const letters = v.replace(/[^a-zA-ZÀ-ÿ]/g, "");
+    if (letters.length > 6 && letters === letters.toUpperCase()) return true;
+    return false;
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!author.trim() || !text.trim()) {
       toast.error(t("reviews.needName"));
+      return;
+    }
+    if (isSpam(text)) {
+      toast.error(t("reviews.spam"));
+      return;
+    }
+    const normalized = text.trim().toLowerCase();
+    if (reviews.some((r) => r.text.trim().toLowerCase() === normalized)) {
+      toast.error(t("reviews.duplicate"));
       return;
     }
     setReviews((prev) => [
@@ -212,11 +246,72 @@ export function ReviewsSection({ app, admin = false }: { app: AppItem; admin?: b
 
       <Separator className="my-6" />
 
-      <div className="space-y-3">
-        {approved.length === 0 && (
+      <div className="flex flex-wrap items-center gap-2">
+        {(
+          [
+            ["recent", t("reviews.sort.recent")],
+            ["best", t("reviews.sort.best")],
+            ["worst", t("reviews.sort.worst")],
+          ] as const
+        ).map(([k, label]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => {
+              setSort(k);
+              setPage(1);
+            }}
+            className={
+              "rounded-full border px-3 py-1.5 text-xs transition-colors " +
+              (sort === k
+                ? "border-primary bg-primary/15 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground")
+            }
+          >
+            {label}
+          </button>
+        ))}
+        <span className="mx-1 hidden w-px self-stretch bg-border sm:block" />
+        <button
+          type="button"
+          onClick={() => {
+            setStarFilter(null);
+            setPage(1);
+          }}
+          className={
+            "rounded-full border px-3 py-1.5 text-xs transition-colors " +
+            (starFilter === null
+              ? "border-primary bg-primary/15 text-primary"
+              : "border-border text-muted-foreground hover:text-foreground")
+          }
+        >
+          {t("reviews.filter.all")}
+        </button>
+        {[5, 4, 3, 2, 1].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => {
+              setStarFilter(star);
+              setPage(1);
+            }}
+            className={
+              "flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors " +
+              (starFilter === star
+                ? "border-primary bg-primary/15 text-primary"
+                : "border-border text-muted-foreground hover:text-foreground")
+            }
+          >
+            {star} <Star className="h-3 w-3 fill-accent text-accent" />
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {visible.length === 0 && (
           <p className="text-sm text-muted-foreground">{t("reviews.none")}</p>
         )}
-        {approved.map((r) => (
+        {paginated.map((r) => (
           <div key={r.id} className="surface-card rounded-xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-sm font-medium">{r.author}</span>
@@ -227,6 +322,12 @@ export function ReviewsSection({ app, admin = false }: { app: AppItem; admin?: b
             <p className="mt-2 text-sm text-muted-foreground">{r.text}</p>
           </div>
         ))}
+
+        {paginated.length < visible.length && (
+          <Button variant="outline" className="w-full" onClick={() => setPage((p) => p + 1)}>
+            {t("reviews.more")}
+          </Button>
+        )}
       </div>
     </section>
   );
