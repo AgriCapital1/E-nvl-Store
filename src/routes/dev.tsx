@@ -19,7 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { DEV_APPS, DEV_TRANSACTIONS, DOWNLOADS_7D, formatCount } from "@/lib/mock-data";
+import {
+  DEV_APPS,
+  DEV_PROFILE,
+  DEV_TRANSACTIONS,
+  DOWNLOADS_7D,
+  formatCount,
+} from "@/lib/mock-data";
 
 export const Route = createFileRoute("/dev")({
   head: () => ({
