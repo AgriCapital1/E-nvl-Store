@@ -23,6 +23,10 @@ export type Database = {
           created_at: string
           developer_app_id: string
           id: string
+          min_android: string | null
+          permissions: Json
+          pwa_build_id: string | null
+          rejection_reason: string | null
           release_notes_en: string | null
           release_notes_fr: string | null
           scan_report: Json | null
@@ -40,6 +44,10 @@ export type Database = {
           created_at?: string
           developer_app_id: string
           id?: string
+          min_android?: string | null
+          permissions?: Json
+          pwa_build_id?: string | null
+          rejection_reason?: string | null
           release_notes_en?: string | null
           release_notes_fr?: string | null
           scan_report?: Json | null
@@ -57,6 +65,10 @@ export type Database = {
           created_at?: string
           developer_app_id?: string
           id?: string
+          min_android?: string | null
+          permissions?: Json
+          pwa_build_id?: string | null
+          rejection_reason?: string | null
           release_notes_en?: string | null
           release_notes_fr?: string | null
           scan_report?: Json | null
@@ -72,6 +84,13 @@ export type Database = {
             columns: ["developer_app_id"]
             isOneToOne: false
             referencedRelation: "developer_apps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "app_versions_pwa_build_id_fkey"
+            columns: ["pwa_build_id"]
+            isOneToOne: false
+            referencedRelation: "pwa_builds"
             referencedColumns: ["id"]
           },
         ]
@@ -116,12 +135,17 @@ export type Database = {
         Row: {
           category: string | null
           created_at: string
+          description: string | null
           developer_id: string
           downloads: number
+          icon_path: string | null
           id: string
           name: string
           price_fcfa: number
           pricing_type: string
+          pwa_url: string | null
+          rejection_reason: string | null
+          screenshots: Json
           short_description: string | null
           slug: string
           status: string
@@ -132,12 +156,17 @@ export type Database = {
         Insert: {
           category?: string | null
           created_at?: string
+          description?: string | null
           developer_id: string
           downloads?: number
+          icon_path?: string | null
           id?: string
           name: string
           price_fcfa?: number
           pricing_type?: string
+          pwa_url?: string | null
+          rejection_reason?: string | null
+          screenshots?: Json
           short_description?: string | null
           slug: string
           status?: string
@@ -148,12 +177,17 @@ export type Database = {
         Update: {
           category?: string | null
           created_at?: string
+          description?: string | null
           developer_id?: string
           downloads?: number
+          icon_path?: string | null
           id?: string
           name?: string
           price_fcfa?: number
           pricing_type?: string
+          pwa_url?: string | null
+          rejection_reason?: string | null
+          screenshots?: Json
           short_description?: string | null
           slug?: string
           status?: string
@@ -883,6 +917,69 @@ export type Database = {
           },
         ]
       }
+      withdrawal_notifications: {
+        Row: {
+          body: string
+          channel: string
+          created_at: string
+          delivery_error: string | null
+          delivery_status: string
+          destination: string | null
+          developer_id: string
+          id: string
+          sent_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+          withdrawal_id: string
+        }
+        Insert: {
+          body: string
+          channel?: string
+          created_at?: string
+          delivery_error?: string | null
+          delivery_status?: string
+          destination?: string | null
+          developer_id: string
+          id?: string
+          sent_at?: string | null
+          status: string
+          subject: string
+          updated_at?: string
+          withdrawal_id: string
+        }
+        Update: {
+          body?: string
+          channel?: string
+          created_at?: string
+          delivery_error?: string | null
+          delivery_status?: string
+          destination?: string | null
+          developer_id?: string
+          id?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+          withdrawal_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_notifications_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_notifications_withdrawal_id_fkey"
+            columns: ["withdrawal_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       withdrawals: {
         Row: {
           amount_fcfa: number
@@ -954,10 +1051,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_review_version: {
+        Args: { _approve: boolean; _reason?: string; _version_id: string }
+        Returns: Json
+      }
       become_developer: {
         Args: { _country?: string; _display_name: string }
         Returns: string
       }
+      cancel_withdrawal: { Args: { _withdrawal_id: string }; Returns: Json }
       change_plan: { Args: { _plan_code: string }; Returns: Json }
       complete_withdrawal: {
         Args: { _external_reference: string; _withdrawal_id: string }
@@ -997,6 +1099,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      record_install: {
+        Args: {
+          _device_model?: string
+          _store_app_id: string
+          _version?: string
+        }
+        Returns: Json
+      }
       record_sale: {
         Args: {
           _developer_app_id: string
@@ -1010,6 +1120,17 @@ export type Database = {
         Args: { _transaction_id: string }
         Returns: undefined
       }
+      request_pwa_build: {
+        Args: {
+          _app_name: string
+          _developer_app_id?: string
+          _options?: Json
+          _package_name: string
+          _source_url: string
+          _theme_color?: string
+        }
+        Returns: Json
+      }
       request_withdrawal: {
         Args: {
           _amount: number
@@ -1020,6 +1141,33 @@ export type Database = {
       }
       settle_transaction: {
         Args: { _transaction_id: string }
+        Returns: undefined
+      }
+      submit_app_version: {
+        Args: {
+          _apk_path: string
+          _apk_size_bytes: number
+          _checksum?: string
+          _developer_app_id: string
+          _min_android?: string
+          _permissions?: Json
+          _pwa_build_id?: string
+          _release_notes_fr?: string
+          _version: string
+          _version_code: number
+        }
+        Returns: Json
+      }
+      update_pwa_build_status: {
+        Args: {
+          _artifact_path?: string
+          _artifact_size_bytes?: number
+          _build_id: string
+          _error_code?: string
+          _error_message?: string
+          _progress?: number
+          _status: string
+        }
         Returns: undefined
       }
     }
