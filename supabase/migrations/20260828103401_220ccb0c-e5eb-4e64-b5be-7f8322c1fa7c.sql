@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.become_developer(text, text) TO authenticated;
