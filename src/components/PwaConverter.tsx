@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { SignInIconLink } from "@/components/AccountButton";
 import { useI18n } from "@/lib/i18n";
 import { useSupabaseSession } from "@/hooks/use-supabase-session";
 import {
@@ -275,9 +276,9 @@ export function PwaConverter() {
               <AlertTriangle className="h-4 w-4 text-warning" /> Connexion requise pour voir vos
               builds.
             </p>
-            <Button asChild variant="outline" size="sm" className="mt-3">
-              <Link to="/auth">Se connecter</Link>
-            </Button>
+            <div className="mt-3">
+              <SignInIconLink />
+            </div>
           </div>
         )}
 

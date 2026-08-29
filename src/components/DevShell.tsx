@@ -1,10 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Copy, ExternalLink } from "lucide-react";
-import { toast } from "sonner";
+import { ExternalLink } from "lucide-react";
 const logo = { url: "/logo.png" };
+import { AccountButton } from "@/components/AccountButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useI18n } from "@/lib/i18n";
-import { DEV_PROFILE } from "@/lib/mock-data";
 import { DEV_HOST } from "@/lib/site";
 
 /**
@@ -29,14 +28,6 @@ export function DevHeader() {
         </span>
 
         <div className="ml-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => toast.success("Token API copié")}
-            className="hidden items-center gap-2 rounded-lg border border-background/25 px-3 py-1.5 font-mono text-[11px] text-background/80 transition-colors hover:text-background sm:flex"
-          >
-            {DEV_PROFILE.apiToken}
-            <Copy className="h-3.5 w-3.5" />
-          </button>
           <a
             href="https://docs.envle.app"
             target="_blank"
@@ -46,6 +37,7 @@ export function DevHeader() {
             {t("dev.nav.docs")} <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <LanguageSwitcher />
+          <AccountButton tone="dark" />
         </div>
       </div>
     </header>
@@ -76,9 +68,6 @@ export function DevShell({ children }: { children: React.ReactNode }) {
             {t("dev.headline")}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">{t("dev.sub")}</p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            {DEV_PROFILE.name} · {DEV_PROFILE.whatsapp}
-          </p>
         </div>
       </section>
       <main className="mx-auto w-full max-w-6xl px-4 py-8">{children}</main>

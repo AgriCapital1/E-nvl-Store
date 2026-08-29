@@ -114,9 +114,9 @@ const fr: Dict = {
 
   /* --- Espace développeur --- */
   "dev.brand": "E'nvlé Developers",
-  "dev.headline": "Publier n'a jamais été aussi simple.",
+  "dev.headline": "Publiez et distribuez vos applications depuis un seul espace.",
   "dev.sub":
-    "Transformez votre site ou votre PWA en application Android, publiez-la et distribuez-la depuis un seul espace.",
+    "Importez votre application Android ou transformez facilement votre site ou votre PWA en application Android.",
   "dev.nav.overview": "Tableau de bord",
   "dev.nav.docs": "Documentation",
   "dev.tab.pwa": "PWA → APK",
@@ -253,9 +253,9 @@ const en: Dict = {
   "install.done": "Installed",
 
   "dev.brand": "E'nvlé Developers",
-  "dev.headline": "Publishing has never been this simple.",
+  "dev.headline": "Publish and distribute your apps from a single workspace.",
   "dev.sub":
-    "Turn your website or PWA into an Android app, publish it and distribute it from a single workspace.",
+    "Upload your Android app, or easily turn your website or PWA into an Android app.",
   "dev.nav.overview": "Dashboard",
   "dev.nav.docs": "Documentation",
   "dev.tab.pwa": "PWA → APK",

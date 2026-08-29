@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Home, LayoutGrid } from "lucide-react";
 const logo = { url: "/logo.png" };
+import { AccountButton } from "@/components/AccountButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useI18n } from "@/lib/i18n";
 
@@ -39,8 +40,9 @@ export function StoreHeader() {
           </Link>
         </nav>
 
-        <div className="ml-auto sm:ml-2">
+        <div className="ml-auto flex items-center gap-1 sm:ml-2">
           <LanguageSwitcher />
+          <AccountButton />
         </div>
       </div>
     </header>
