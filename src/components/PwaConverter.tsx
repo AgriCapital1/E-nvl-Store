@@ -85,7 +85,12 @@ export function PwaConverter() {
   });
 
   const validateMutation = useMutation({
-    mutationFn: () => runValidate({ data: { url } }),
+    mutationFn: () => {
+      if (isAuthenticated !== true) {
+        throw new Error("NOT_AUTHENTICATED");
+      }
+      return runValidate({ data: { url } });
+    },
     onSuccess: (result) => {
       setValidation(result);
       setAppName(result.appName ?? "");
