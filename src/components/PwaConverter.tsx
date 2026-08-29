@@ -246,7 +246,8 @@ export function PwaConverter() {
                 !validation.eligible ||
                 !packageValid ||
                 appName.trim().length < 2 ||
-                buildMutation.isPending
+                buildMutation.isPending ||
+                isAuthenticated !== true
               }
               onClick={() => buildMutation.mutate()}
             >
