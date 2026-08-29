@@ -107,9 +107,9 @@ export function FinancePanel() {
           Connectez-vous à votre compte développeur pour consulter vos soldes, votre historique et
           vos retraits.
         </p>
-        <Button asChild variant="hero" className="mt-4">
-          <Link to="/auth">Se connecter</Link>
-        </Button>
+        <div className="mt-4">
+          <SignInIconLink />
+        </div>
       </div>
     );
   }
