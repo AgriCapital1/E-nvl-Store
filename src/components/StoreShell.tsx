@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Home, LayoutGrid } from "lucide-react";
 const logo = { url: "/logo.png" };
+import { AccountButton } from "@/components/AccountButton";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useI18n } from "@/lib/i18n";
 
