@@ -39,8 +39,9 @@ export function StoreHeader() {
           </Link>
         </nav>
 
-        <div className="ml-auto sm:ml-2">
+        <div className="ml-auto flex items-center gap-1 sm:ml-2">
           <LanguageSwitcher />
+          <AccountButton />
         </div>
       </div>
     </header>
