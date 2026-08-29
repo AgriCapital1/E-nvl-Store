@@ -68,9 +68,6 @@ export function DevShell({ children }: { children: React.ReactNode }) {
             {t("dev.headline")}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">{t("dev.sub")}</p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            {DEV_PROFILE.name} · {DEV_PROFILE.whatsapp}
-          </p>
         </div>
       </section>
       <main className="mx-auto w-full max-w-6xl px-4 py-8">{children}</main>
