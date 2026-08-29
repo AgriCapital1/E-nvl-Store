@@ -177,7 +177,9 @@ export function PwaConverter() {
             variant="hero"
             size="lg"
             onClick={() => validateMutation.mutate()}
-            disabled={validateMutation.isPending || url.trim().length < 4}
+            disabled={
+              validateMutation.isPending || url.trim().length < 4 || isAuthenticated !== true
+            }
           >
             {validateMutation.isPending ? (
               <>
