@@ -253,9 +253,9 @@ const en: Dict = {
   "install.done": "Installed",
 
   "dev.brand": "E'nvlé Developers",
-  "dev.headline": "Publishing has never been this simple.",
+  "dev.headline": "Publish and distribute your apps from a single workspace.",
   "dev.sub":
-    "Turn your website or PWA into an Android app, publish it and distribute it from a single workspace.",
+    "Upload your Android app, or easily turn your website or PWA into an Android app.",
   "dev.nav.overview": "Dashboard",
   "dev.nav.docs": "Documentation",
   "dev.tab.pwa": "PWA → APK",
