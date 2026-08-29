@@ -85,7 +85,12 @@ export function PwaConverter() {
   });
 
   const validateMutation = useMutation({
-    mutationFn: () => runValidate({ data: { url } }),
+    mutationFn: () => {
+      if (isAuthenticated !== true) {
+        throw new Error("NOT_AUTHENTICATED");
+      }
+      return runValidate({ data: { url } });
+    },
     onSuccess: (result) => {
       setValidation(result);
       setAppName(result.appName ?? "");
@@ -172,7 +177,9 @@ export function PwaConverter() {
             variant="hero"
             size="lg"
             onClick={() => validateMutation.mutate()}
-            disabled={validateMutation.isPending || url.trim().length < 4}
+            disabled={
+              validateMutation.isPending || url.trim().length < 4 || isAuthenticated !== true
+            }
           >
             {validateMutation.isPending ? (
               <>
@@ -239,7 +246,8 @@ export function PwaConverter() {
                 !validation.eligible ||
                 !packageValid ||
                 appName.trim().length < 2 ||
-                buildMutation.isPending
+                buildMutation.isPending ||
+                isAuthenticated !== true
               }
               onClick={() => buildMutation.mutate()}
             >
