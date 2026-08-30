@@ -463,7 +463,51 @@ export const requestPwaBuild = createServerFn({ method: "POST" })
       console.error("request_pwa_build failed", error.message);
       return { ok: false, code: "BUILD_REQUEST_FAILED" };
     }
-    return parseBuildResult(result);
+
+    const parsedResult = parseBuildResult(result);
+    if (!parsedResult.ok || !parsedResult.reference) {
+      return parsedResult;
+    }
+
+    // Déclenchement du moteur de compilation Android.
+    const { data: row } = await context.supabase
+      .from("pwa_builds")
+      .select("id")
+      .eq("reference", parsedResult.reference)
+      .maybeSingle();
+
+    if (!row?.id) {
+      return parsedResult;
+    }
+
+    const { dispatchAndroidBuild } = await import("./github-dispatch.server");
+    const dispatch = await dispatchAndroidBuild({
+      buildId: row.id as string,
+      reference: parsedResult.reference,
+      sourceUrl: data.sourceUrl,
+      appName: data.appName,
+      packageName: data.packageName,
+      themeColor: data.themeColor ?? null,
+    });
+
+    if (!dispatch.ok) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await rpc(supabaseAdmin as unknown as { rpc: unknown }, "update_pwa_build_status", {
+        _build_id: row.id,
+        _status: "failed",
+        _progress: null,
+        _artifact_path: null,
+        _artifact_size_bytes: null,
+        _error_code: dispatch.code,
+        _error_message:
+          dispatch.code === "NOT_CONFIGURED"
+            ? "Moteur de compilation non configuré."
+            : "Le moteur de compilation n'a pas pu être démarré.",
+      });
+      return { ok: false, code: dispatch.code };
+    }
+
+    return parsedResult;
   });
 
 /** Historique des builds du développeur connecté. */
