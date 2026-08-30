@@ -29,7 +29,7 @@ export async function dispatchAndroidBuild(
   build: AndroidBuildDispatch,
 ): Promise<DispatchResult> {
   const token = process.env["GITHUB_BUILD_TOKEN"];
-  const repo = process.env["GITHUB_BUILD_REPO"]; // format "owner/repo"
+  const repo = normalizeRepo(process.env["GITHUB_BUILD_REPO"]); // format "owner/repo"
   const callbackSecret = process.env["ENVLE_BUILD_CALLBACK_SECRET"];
 
   if (!token || !repo || !callbackSecret) {
