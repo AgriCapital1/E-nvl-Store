@@ -1,0 +1,113 @@
+name: E'nvlé PWA → APK
+
+# Moteur de compilation invisible : déclenché par E'nvlé Developers via
+# repository_dispatch (event_type: envle-pwa-build). Aucun développeur
+# utilisateur n'interagit avec GitHub.
+
+on:
+  repository_dispatch:
+    types: [envle-pwa-build]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      BUILD_ID: ${{ github.event.client_payload.build_id }}
+      REFERENCE: ${{ github.event.client_payload.reference }}
+      SOURCE_URL: ${{ github.event.client_payload.source_url }}
+      APP_NAME: ${{ github.event.client_payload.app_name }}
+      PACKAGE_NAME: ${{ github.event.client_payload.package_name }}
+      THEME_COLOR: ${{ github.event.client_payload.theme_color }}
+      CALLBACK_URL: ${{ github.event.client_payload.callback_url }}
+      CALLBACK_SECRET: ${{ secrets.ENVLE_BUILD_CALLBACK_SECRET }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+    steps:
+      - name: Statut — préparation
+        run: |
+          curl -sS -X POST "$CALLBACK_URL" \
+            -H "content-type: application/json" \
+            -H "x-envle-build-secret: $CALLBACK_SECRET" \
+            -d "{\"build_id\":\"$BUILD_ID\",\"status\":\"preparing\",\"progress\":10}"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Installer Bubblewrap
+        run: npm i -g @bubblewrap/cli@latest
+
+      - name: Statut — compilation
+        run: |
+          curl -sS -X POST "$CALLBACK_URL" \
+            -H "content-type: application/json" \
+            -H "x-envle-build-secret: $CALLBACK_SECRET" \
+            -d "{\"build_id\":\"$BUILD_ID\",\"status\":\"building\",\"progress\":35}"
+
+      - name: Restaurer le keystore de signature
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/envle.keystore"
+
+      - name: Initialiser et compiler le projet TWA
+        run: |
+          set -euo pipefail
+          mkdir -p build && cd build
+          MANIFEST_URL="$SOURCE_URL"
+          case "$MANIFEST_URL" in
+            *manifest*) ;;
+            *) MANIFEST_URL="${SOURCE_URL%/}/manifest.webmanifest" ;;
+          esac
+          bubblewrap init --manifest="$MANIFEST_URL" \
+            --directory=. \
+            --packageId="$PACKAGE_NAME" \
+            --appVersionName="1.0.0" \
+            --appVersionCode=1 \
+            --name="$APP_NAME" \
+            --themeColor="$THEME_COLOR" \
+            --signingKeyPath="$RUNNER_TEMP/envle.keystore" \
+            --signingKeyAlias="${{ secrets.ANDROID_KEY_ALIAS }}" \
+            --skipPwaValidation \
+            --yes || bubblewrap init --manifest="$MANIFEST_URL" --directory=. --yes
+          bubblewrap build --skipPwaValidation
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Statut — envoi de l'artefact
+        run: |
+          curl -sS -X POST "$CALLBACK_URL" \
+            -H "content-type: application/json" \
+            -H "x-envle-build-secret: $CALLBACK_SECRET" \
+            -d "{\"build_id\":\"$BUILD_ID\",\"status\":\"uploading\",\"progress\":80}"
+
+      - name: Téléverser l'APK vers Supabase Storage (app-builds)
+        run: |
+          set -euo pipefail
+          APK=$(find build -name "*.apk" | head -n1)
+          SIZE=$(stat -c%s "$APK")
+          PATH_IN_BUCKET="$BUILD_ID/$REFERENCE.apk"
+          curl -sS -f -X POST \
+            "$SUPABASE_URL/storage/v1/object/app-builds/$PATH_IN_BUCKET" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "content-type: application/vnd.android.package-archive" \
+            -H "x-upsert: true" \
+            --data-binary "@$APK"
+          curl -sS -X POST "$CALLBACK_URL" \
+            -H "content-type: application/json" \
+            -H "x-envle-build-secret: $CALLBACK_SECRET" \
+            -d "{\"build_id\":\"$BUILD_ID\",\"status\":\"succeeded\",\"progress\":100,\"artifact_path\":\"$PATH_IN_BUCKET\",\"artifact_size_bytes\":$SIZE}"
+
+      - name: Statut — échec
+        if: failure()
+        run: |
+          curl -sS -X POST "$CALLBACK_URL" \
+            -H "content-type: application/json" \
+            -H "x-envle-build-secret: $CALLBACK_SECRET" \
+            -d "{\"build_id\":\"$BUILD_ID\",\"status\":\"failed\",\"error_code\":\"BUILD_FAILED\",\"error_message\":\"La compilation Android a échoué.\"}"
