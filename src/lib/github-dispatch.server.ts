@@ -25,6 +25,15 @@ function publicBaseUrl(): string {
   );
 }
 
+/** Tolère "owner/repo", "owner/repo.git" ou une URL GitHub complète. */
+function normalizeRepo(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  let repo = value.trim();
+  repo = repo.replace(/^git@github\.com:/, "").replace(/^https?:\/\/github\.com\//, "");
+  repo = repo.replace(/\.git$/, "").replace(/\/+$/, "");
+  return /^[^/\s]+\/[^/\s]+$/.test(repo) ? repo : undefined;
+}
+
 export async function dispatchAndroidBuild(
   build: AndroidBuildDispatch,
 ): Promise<DispatchResult> {
