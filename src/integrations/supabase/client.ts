@@ -28,11 +28,21 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 }
 
 
+// Valeurs publiques de repli (clé publiable = non secrète) pour éviter un écran
+// blanc si les variables d'environnement ne sont pas injectées au build.
+const FALLBACK_SUPABASE_URL = 'https://oqpbjluvxijxgprmuedb.supabase.co';
+const FALLBACK_SUPABASE_PUBLISHABLE_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xcGJqbHV2eGlqeGdwcm11ZWRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MjkwNzEsImV4cCI6MjEwMzQwNTA3MX0.MQCrnRYkXOTMhaCimHHltjco0kRLXrq0pw5n7M14tRs';
+
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
+  const SUPABASE_URL =
+    import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'] || FALLBACK_SUPABASE_URL;
+  const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    process.env['SUPABASE_PUBLISHABLE_KEY'] ||
+    FALLBACK_SUPABASE_PUBLISHABLE_KEY;
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
