@@ -7,6 +7,7 @@ import {
   fileExtension,
   IMAGE_EXTENSIONS,
   MAX_IMAGE_BYTES,
+  MAX_CHECKSUM_BYTES,
   MAX_PACKAGE_BYTES,
   PACKAGE_EXTENSIONS,
   uploadInputSchema,
@@ -308,7 +309,7 @@ export const submitVersion = createServerFn({ method: "POST" })
       _apk_path: data.apkPath,
       _apk_size_bytes: data.apkSizeBytes,
       _release_notes_fr: data.releaseNotesFr ?? null,
-      _checksum: null,
+      _checksum: data.checksum ?? null,
       _pwa_build_id: null,
       _permissions: [],
       _min_android: data.minAndroid ?? null,
@@ -322,6 +323,62 @@ export const submitVersion = createServerFn({ method: "POST" })
       .safeParse(result);
     if (!parsed.success) return { ok: false, code: "SUBMIT_FAILED" };
     return { ok: parsed.data.ok, code: parsed.data.code, id: parsed.data.version_id };
+  });
+
+export interface PackageVerification {
+  ok: boolean;
+  code?: string | undefined;
+  size?: number | undefined;
+  checksum?: string | undefined;
+}
+
+/**
+ * Vérifie côté serveur qu'un paquet téléversé existe réellement dans le bucket
+ * `app-packages`, que sa taille correspond à celle annoncée, et calcule son
+ * SHA-256 lorsque le fichier reste sous le seuil de téléchargement.
+ */
+export const verifyPackageUpload = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({ path: z.string().min(3).max(300), expectedSize: z.number().int().positive() })
+      .parse(data),
+  )
+  .handler(async ({ data, context }): Promise<PackageVerification> => {
+    const supabase = context.supabase;
+    const slash = data.path.lastIndexOf("/");
+    const dir = slash > 0 ? data.path.slice(0, slash) : "";
+    const fileName = slash > 0 ? data.path.slice(slash + 1) : data.path;
+
+    const { data: entries, error } = await supabase.storage
+      .from("app-packages")
+      .list(dir, { search: fileName, limit: 100 });
+    if (error) {
+      console.error("verifyPackageUpload list failed", error.message);
+      return { ok: false, code: "FILE_MISSING" };
+    }
+    const found = (entries ?? []).find((e) => e.name === fileName);
+    if (!found) return { ok: false, code: "FILE_MISSING" };
+
+    const size = Number(
+      (found.metadata as { size?: number } | null)?.size ?? 0,
+    );
+    if (size !== data.expectedSize) {
+      return { ok: false, code: "SIZE_MISMATCH", size };
+    }
+
+    let checksum: string | undefined;
+    if (size <= MAX_CHECKSUM_BYTES) {
+      const { data: blob } = await supabase.storage.from("app-packages").download(data.path);
+      if (blob) {
+        const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+        checksum = Array.from(new Uint8Array(digest))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+    }
+
+    return { ok: true, size, checksum };
   });
 
 /** Statistiques réelles : installations sur 7 jours et versions à risque. */
