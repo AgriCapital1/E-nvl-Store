@@ -53,6 +53,38 @@ export const Route = createFileRoute("/api/public/build-callback")({
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+        // Un build n'est « succeeded » qu'après vérification réelle de l'artefact en bucket.
+        let status: string = parsed.status;
+        let errorCode = parsed.error_code ?? null;
+        let errorMessage = parsed.error_message ?? null;
+
+        if (parsed.status === "succeeded") {
+          const path = parsed.artifact_path ?? "";
+          const slash = path.lastIndexOf("/");
+          const dir = slash > 0 ? path.slice(0, slash) : "";
+          const fileName = slash > 0 ? path.slice(slash + 1) : path;
+
+          const { data: entries } = await supabaseAdmin.storage
+            .from("app-builds")
+            .list(dir, { search: fileName, limit: 100 });
+          const found = (entries ?? []).find((e) => e.name === fileName);
+          const size = Number((found?.metadata as { size?: number } | null)?.size ?? 0);
+
+          if (!path || !found || size <= 0) {
+            status = "failed";
+            errorCode = "ARTIFACT_MISSING";
+            errorMessage = "L'APK annoncé est introuvable dans le stockage E'nvlé.";
+          } else if (
+            typeof parsed.artifact_size_bytes === "number" &&
+            parsed.artifact_size_bytes !== size
+          ) {
+            status = "failed";
+            errorCode = "ARTIFACT_MISSING";
+            errorMessage = "La taille de l'APK stocké ne correspond pas au build.";
+          }
+        }
+
         const { error } = await (
           supabaseAdmin.rpc as unknown as (
             fn: string,
@@ -60,12 +92,12 @@ export const Route = createFileRoute("/api/public/build-callback")({
           ) => Promise<{ error: { message: string } | null }>
         )("update_pwa_build_status", {
           _build_id: parsed.build_id,
-          _status: parsed.status,
+          _status: status,
           _progress: parsed.progress ?? null,
           _artifact_path: parsed.artifact_path ?? null,
           _artifact_size_bytes: parsed.artifact_size_bytes ?? null,
-          _error_code: parsed.error_code ?? null,
-          _error_message: parsed.error_message ?? null,
+          _error_code: errorCode,
+          _error_message: errorMessage,
         });
 
         if (error) {
@@ -73,7 +105,7 @@ export const Route = createFileRoute("/api/public/build-callback")({
           return new Response("Update failed", { status: 500 });
         }
 
-        return Response.json({ ok: true });
+        return Response.json({ ok: true, status });
       },
     },
   },

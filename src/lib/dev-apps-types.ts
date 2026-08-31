@@ -129,7 +129,11 @@ export const versionInputSchema = z.object({
   apkSizeBytes: z.number().int().min(1),
   releaseNotesFr: z.string().max(1000).nullish(),
   minAndroid: z.string().max(20).nullish(),
+  checksum: z.string().max(128).nullish(),
 });
+
+/** Seuil au-dessus duquel le SHA-256 n'est pas calculé côté serveur. */
+export const MAX_CHECKSUM_BYTES = 50 * 1024 * 1024; // 50 Mo
 
 export function slugify(value: string): string {
   return value

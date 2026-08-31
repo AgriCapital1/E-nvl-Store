@@ -16,6 +16,7 @@ import { DevShell } from "@/components/DevShell";
 import { PwaConverter } from "@/components/PwaConverter";
 import { FinancePanel } from "@/components/FinancePanel";
 import { SignInIconLink } from "@/components/AccountButton";
+import { NoProfile } from "@/components/DeveloperProfileForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,11 +36,11 @@ import { useSupabaseSession } from "@/hooks/use-supabase-session";
 import {
   archiveDeveloperApp,
   createUploadTarget,
-  ensureDeveloperProfile,
   getDevStats,
   getDevWorkspace,
   saveDeveloperApp,
   submitVersion,
+  verifyPackageUpload,
 } from "@/lib/dev-apps.functions";
 import {
   fileExtension,
@@ -166,26 +167,11 @@ function LoadingCard() {
   );
 }
 
-function NoProfile({ onCreate, busy }: { onCreate: () => void; busy: boolean }) {
-  return (
-    <StateCard
-      icon={<Package className="h-4 w-4 text-primary" />}
-      title="Créez votre profil développeur"
-      text="Un profil développeur est nécessaire pour publier des applications sur E'nvlé Store."
-      action={
-        <Button variant="hero" onClick={onCreate} disabled={busy}>
-          {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Activer mon espace
-        </Button>
-      }
-    />
-  );
-}
-
 /* -------------------------------------------------------------------------- */
 /* Onglet : envoi d'un APK / AAB                                              */
 /* -------------------------------------------------------------------------- */
 
-type UploadState = "idle" | "uploading" | "submitting" | "done";
+type UploadState = "idle" | "uploading" | "verifying" | "submitting" | "done";
 
 function UploadPanel() {
   const { isAuthenticated, query } = useWorkspace();
@@ -236,6 +222,12 @@ function UploadPanel() {
       setProgress(0);
       await putWithProgress(target.url, file, setProgress);
 
+      setState("verifying");
+      const verification = await verifyPackageUpload({
+        data: { path: target.path, expectedSize: file.size },
+      });
+      if (!verification.ok) throw new Error(verifyError(verification.code));
+
       setState("submitting");
       const result = await submitVersion({
         data: {
@@ -244,6 +236,7 @@ function UploadPanel() {
           versionCode: Number(versionCode),
           apkPath: target.path,
           apkSizeBytes: file.size,
+          checksum: verification.checksum ?? null,
           releaseNotesFr: notes.trim() ? notes.trim() : null,
           minAndroid: null,
         },
@@ -280,10 +273,10 @@ function UploadPanel() {
     );
   }
   if (!query.data?.hasProfile) {
-    return <NoProfile onCreate={() => {}} busy={false} />;
+    return <NoProfile />;
   }
 
-  const busy = state === "uploading" || state === "submitting";
+  const busy = state === "uploading" || state === "verifying" || state === "submitting";
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
@@ -347,11 +340,13 @@ function UploadPanel() {
 
         {busy && (
           <div className="mt-6 w-full max-w-sm">
-            <Progress value={state === "submitting" ? 100 : progress} />
+            <Progress value={state === "uploading" ? progress : 100} />
             <p className="mt-2 text-xs text-muted-foreground">
               {state === "submitting"
                 ? "Envoi en revue…"
-                : `Téléversement ${Math.round(progress)} %`}
+                : state === "verifying"
+                  ? "Vérification du fichier…"
+                  : `Téléversement ${Math.round(progress)} %`}
             </p>
           </div>
         )}
@@ -443,6 +438,17 @@ function uploadError(code?: string): string {
   }
 }
 
+function verifyError(code?: string): string {
+  switch (code) {
+    case "FILE_MISSING":
+      return "Le fichier n'a pas été retrouvé après le téléversement. Réessayez.";
+    case "SIZE_MISMATCH":
+      return "Le fichier téléversé est incomplet : la taille ne correspond pas. Réessayez.";
+    default:
+      return "La vérification du fichier a échoué. Réessayez.";
+  }
+}
+
 function submitError(code?: string): string {
   switch (code) {
     case "VERSION_CODE_TOO_LOW":
@@ -507,15 +513,6 @@ function AppsPanel() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["dev-workspace"] });
 
-  const createProfile = useMutation({
-    mutationFn: () => ensureDeveloperProfile({ data: {} }),
-    onSuccess: () => {
-      toast.success("Espace développeur activé");
-      void invalidate();
-    },
-    onError: () => toast.error("Activation impossible pour le moment."),
-  });
-
   const save = useMutation({
     mutationFn: async (value: AppFormState) => {
       const result = await saveDeveloperApp({
@@ -575,7 +572,7 @@ function AppsPanel() {
 
   const workspace = query.data!;
   if (!workspace.hasProfile) {
-    return <NoProfile onCreate={() => createProfile.mutate()} busy={createProfile.isPending} />;
+    return <NoProfile />;
   }
 
   return (
