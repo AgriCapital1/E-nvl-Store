@@ -340,7 +340,7 @@ function UploadPanel() {
 
         {busy && (
           <div className="mt-6 w-full max-w-sm">
-            <Progress value={state === "idle" || state === "uploading" ? progress : 100} />
+            <Progress value={state === "uploading" ? progress : 100} />
             <p className="mt-2 text-xs text-muted-foreground">
               {state === "submitting"
                 ? "Envoi en revue…"
