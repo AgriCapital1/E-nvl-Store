@@ -36,11 +36,11 @@ import { useSupabaseSession } from "@/hooks/use-supabase-session";
 import {
   archiveDeveloperApp,
   createUploadTarget,
-  ensureDeveloperProfile,
   getDevStats,
   getDevWorkspace,
   saveDeveloperApp,
   submitVersion,
+  verifyPackageUpload,
 } from "@/lib/dev-apps.functions";
 import {
   fileExtension,
@@ -512,15 +512,6 @@ function AppsPanel() {
   const [form, setForm] = useState<AppFormState | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["dev-workspace"] });
-
-  const createProfile = useMutation({
-    mutationFn: () => ensureDeveloperProfile({ data: {} }),
-    onSuccess: () => {
-      toast.success("Espace développeur activé");
-      void invalidate();
-    },
-    onError: () => toast.error("Activation impossible pour le moment."),
-  });
 
   const save = useMutation({
     mutationFn: async (value: AppFormState) => {
