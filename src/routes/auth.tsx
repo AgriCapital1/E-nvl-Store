@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+type Space = "public" | "dev";
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>): { space: Space } => ({
+    space: search['space'] === "dev" ? "dev" : "public",
+  }),
   head: () => ({
     meta: [
       { title: "Connexion développeur — E'nvlé Store" },
@@ -32,6 +37,9 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { space } = Route.useSearch();
+  const target = space === "dev" ? "/dev" : "/";
+  const isDev = space === "dev";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -39,9 +47,9 @@ function AuthPage() {
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
-      if (data.session) void navigate({ to: "/dev" });
+      if (data.session) void navigate({ to: target });
     });
-  }, [navigate]);
+  }, [navigate, target]);
 
   const signIn = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -53,7 +61,7 @@ function AuthPage() {
       return;
     }
     toast.success("Connexion réussie");
-    void navigate({ to: "/dev" });
+    void navigate({ to: target });
   };
 
   const signUp = async (event: React.FormEvent) => {
@@ -63,7 +71,7 @@ function AuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dev`,
+        emailRedirectTo: `${window.location.origin}${target}`,
         data: { display_name: name || email.split("@")[0] },
       },
     });
@@ -78,9 +86,13 @@ function AuthPage() {
   return (
     <StoreShell>
       <div className="mx-auto w-full max-w-md px-4 py-12">
-        <h1 className="font-display text-2xl font-semibold">Espace développeur</h1>
+        <h1 className="font-display text-2xl font-semibold">
+          {isDev ? "Espace développeur" : "Mon compte"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Connectez-vous pour accéder à vos soldes, retraits et builds Android.
+          {isDev
+            ? "Connectez-vous pour accéder à vos soldes, retraits et builds Android."
+            : "Connectez-vous pour retrouver vos applications installées, vos favoris et vos avis."}
         </p>
 
         <Tabs defaultValue="signin" className="mt-6">
