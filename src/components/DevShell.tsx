@@ -37,7 +37,7 @@ export function DevHeader() {
             {t("dev.nav.docs")} <ExternalLink className="h-3.5 w-3.5" />
           </a>
           <LanguageSwitcher />
-          <AccountButton tone="dark" />
+          <AccountButton tone="dark" space="dev" />
         </div>
       </div>
     </header>

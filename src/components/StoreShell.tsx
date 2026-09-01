@@ -42,7 +42,7 @@ export function StoreHeader() {
 
         <div className="ml-auto flex items-center gap-1 sm:ml-2">
           <LanguageSwitcher />
-          <AccountButton />
+          <AccountButton space="public" />
         </div>
       </div>
     </header>
