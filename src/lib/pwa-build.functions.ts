@@ -491,6 +491,7 @@ export const requestPwaBuild = createServerFn({ method: "POST" })
     });
 
     if (!dispatch.ok) {
+      const { DISPATCH_ERROR_MESSAGES } = await import("./github-dispatch.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await rpc(supabaseAdmin as unknown as { rpc: unknown }, "update_pwa_build_status", {
         _build_id: row.id,
