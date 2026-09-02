@@ -278,8 +278,19 @@ export function PwaConverter() {
         </div>
       )}
 
+      {engine.data && engine.data.ok === false && (
+        <div className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <p className="flex items-start gap-2 font-medium">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            Moteur de compilation indisponible
+          </p>
+          <p className="mt-1 pl-6 text-muted-foreground">{engine.data.message}</p>
+        </div>
+      )}
+
       <div className="surface-card rounded-2xl p-6">
         <h3 className="font-display text-lg font-semibold">Historique des builds</h3>
+
 
         {builds.isError && (
           <div className="mt-3 text-sm text-muted-foreground">
