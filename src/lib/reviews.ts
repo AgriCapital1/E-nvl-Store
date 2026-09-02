@@ -35,16 +35,35 @@ function mapRow(row: Row): ReviewRecord {
   };
 }
 
-/** Avis visibles pour l'utilisateur courant (approuvés + les siens grâce à la RLS). */
+/**
+ * Avis visibles pour l'utilisateur courant (approuvés + les siens grâce à la RLS).
+ * Le user_id interne n'est jamais exposé publiquement : la liste publique ne le
+ * sélectionne pas ; seuls les avis de l'utilisateur connecté sont rechargés avec
+ * leur user_id (requête séparée, filtrée côté base).
+ */
 export async function listReviews(storeAppId: string): Promise<ReviewRecord[]> {
+  const publicCols = "id, author_name, rating, comment, created_at, status, developer_reply";
   const { data, error } = await supabase
     .from("reviews")
-    .select("id, user_id, author_name, rating, comment, created_at, status, developer_reply")
+    .select(publicCols)
     .eq("store_app_id", storeAppId)
     .order("created_at", { ascending: false })
     .limit(200);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => mapRow(r as Row));
+  const rows = (data ?? []).map((r) => mapRow({ ...(r as Omit<Row, "user_id">), user_id: "" }));
+
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return rows;
+
+  const { data: mine } = await supabase
+    .from("reviews")
+    .select("id")
+    .eq("store_app_id", storeAppId)
+    .eq("user_id", uid)
+    .limit(200);
+  const mineIds = new Set((mine ?? []).map((r) => r.id as string));
+  return rows.map((r) => (mineIds.has(r.id) ? { ...r, userId: uid } : r));
 }
 
 export async function createReview(input: {
