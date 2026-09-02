@@ -551,3 +551,19 @@ export const getBuildArtifactUrl = createServerFn({ method: "POST" })
     }
     return { ok: true as const, url: signed.signedUrl };
   });
+
+export interface BuildEngineStatus {
+  ok: boolean;
+  code?: string;
+  message?: string;
+}
+
+/** Diagnostic du moteur de compilation Android (visible dans l'espace développeur). */
+export const getBuildEngineStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<BuildEngineStatus> => {
+    const { checkBuildEngineConfig } = await import("./github-dispatch.server");
+    const result = await checkBuildEngineConfig();
+    if (result.ok) return { ok: true };
+    return { ok: false, code: result.code, message: result.message };
+  });
