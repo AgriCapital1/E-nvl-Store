@@ -75,8 +75,17 @@ export function PwaConverter() {
   const runRequest = useServerFn(requestPwaBuild);
   const runArtifact = useServerFn(getBuildArtifactUrl);
   const fetchBuilds = useServerFn(listPwaBuilds);
+  const fetchEngine = useServerFn(getBuildEngineStatus);
 
   const isAuthenticated = useSupabaseSession();
+
+  const engine = useQuery<BuildEngineStatus>({
+    queryKey: ["build-engine-status"],
+    queryFn: () => fetchEngine(),
+    enabled: isAuthenticated === true,
+    retry: false,
+    staleTime: 60_000,
+  });
 
   const builds = useQuery<PwaBuildRow[]>({
     queryKey: ["pwa-builds"],
