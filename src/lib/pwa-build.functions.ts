@@ -491,6 +491,7 @@ export const requestPwaBuild = createServerFn({ method: "POST" })
     });
 
     if (!dispatch.ok) {
+      const { DISPATCH_ERROR_MESSAGES } = await import("./github-dispatch.server");
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       await rpc(supabaseAdmin as unknown as { rpc: unknown }, "update_pwa_build_status", {
         _build_id: row.id,
@@ -499,10 +500,7 @@ export const requestPwaBuild = createServerFn({ method: "POST" })
         _artifact_path: null,
         _artifact_size_bytes: null,
         _error_code: dispatch.code,
-        _error_message:
-          dispatch.code === "NOT_CONFIGURED"
-            ? "Moteur de compilation non configuré."
-            : "Le moteur de compilation n'a pas pu être démarré.",
+        _error_message: DISPATCH_ERROR_MESSAGES[dispatch.code],
       });
       return { ok: false, code: dispatch.code };
     }
@@ -552,4 +550,20 @@ export const getBuildArtifactUrl = createServerFn({ method: "POST" })
       return { ok: false as const, code: "SIGN_FAILED" };
     }
     return { ok: true as const, url: signed.signedUrl };
+  });
+
+export interface BuildEngineStatus {
+  ok: boolean;
+  code?: string;
+  message?: string;
+}
+
+/** Diagnostic du moteur de compilation Android (visible dans l'espace développeur). */
+export const getBuildEngineStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<BuildEngineStatus> => {
+    const { checkBuildEngineConfig } = await import("./github-dispatch.server");
+    const result = await checkBuildEngineConfig();
+    if (result.ok) return { ok: true };
+    return { ok: false, code: result.code, message: result.message };
   });

@@ -13,9 +13,25 @@ export interface AndroidBuildDispatch {
   themeColor?: string | null;
 }
 
+export type DispatchErrorCode =
+  | "NOT_CONFIGURED"
+  | "REPO_NOT_FOUND"
+  | "TOKEN_FORBIDDEN"
+  | "DISPATCH_FAILED";
+
 export type DispatchResult =
   | { ok: true }
-  | { ok: false; code: "NOT_CONFIGURED" | "DISPATCH_FAILED"; detail?: string };
+  | { ok: false; code: DispatchErrorCode; detail?: string };
+
+/** Message lisible (FR) associé à un code d'échec de démarrage du moteur. */
+export const DISPATCH_ERROR_MESSAGES: Record<DispatchErrorCode, string> = {
+  NOT_CONFIGURED: "Moteur de compilation non configuré.",
+  REPO_NOT_FOUND:
+    "Le dépôt de compilation est introuvable : synchronisez le projet sur GitHub et vérifiez GITHUB_BUILD_REPO.",
+  TOKEN_FORBIDDEN:
+    "Accès refusé par le moteur de compilation : le jeton GitHub doit avoir la permission Contents (lecture/écriture).",
+  DISPATCH_FAILED: "Le moteur de compilation n'a pas pu être démarré.",
+};
 
 /** URL publique de l'application (pour le callback du worker). */
 function publicBaseUrl(): string {
@@ -71,8 +87,49 @@ export async function dispatchAndroidBuild(
   if (!res.ok) {
     const detail = (await res.text()).slice(0, 300);
     console.error("GitHub dispatch failed", res.status, detail);
-    return { ok: false, code: "DISPATCH_FAILED", detail: `${res.status}` };
+    const code: DispatchErrorCode =
+      res.status === 404 ? "REPO_NOT_FOUND" : res.status === 403 ? "TOKEN_FORBIDDEN" : "DISPATCH_FAILED";
+    return { ok: false, code, detail: `${res.status}` };
   }
 
   return { ok: true };
+}
+
+/** Diagnostic du moteur de compilation (utilisé par l'espace développeur / admin). */
+export async function checkBuildEngineConfig(): Promise<
+  { ok: true; repo: string } | { ok: false; code: DispatchErrorCode; message: string }
+> {
+  const token = process.env["GITHUB_BUILD_TOKEN"];
+  const repo = normalizeRepo(process.env["GITHUB_BUILD_REPO"]);
+  const callbackSecret = process.env["ENVLE_BUILD_CALLBACK_SECRET"];
+
+  if (!token || !repo || !callbackSecret) {
+    return { ok: false, code: "NOT_CONFIGURED", message: DISPATCH_ERROR_MESSAGES.NOT_CONFIGURED };
+  }
+
+  const res = await fetch(`https://api.github.com/repos/${repo}`, {
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${token}`,
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "envle-build-dispatcher",
+    },
+  });
+
+  if (res.status === 404) {
+    return { ok: false, code: "REPO_NOT_FOUND", message: DISPATCH_ERROR_MESSAGES.REPO_NOT_FOUND };
+  }
+  if (res.status === 401 || res.status === 403) {
+    return { ok: false, code: "TOKEN_FORBIDDEN", message: DISPATCH_ERROR_MESSAGES.TOKEN_FORBIDDEN };
+  }
+  if (!res.ok) {
+    return { ok: false, code: "DISPATCH_FAILED", message: DISPATCH_ERROR_MESSAGES.DISPATCH_FAILED };
+  }
+
+  const body = (await res.json()) as { permissions?: { push?: boolean } };
+  if (body.permissions && body.permissions.push !== true) {
+    return { ok: false, code: "TOKEN_FORBIDDEN", message: DISPATCH_ERROR_MESSAGES.TOKEN_FORBIDDEN };
+  }
+
+  return { ok: true, repo };
 }

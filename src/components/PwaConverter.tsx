@@ -25,9 +25,11 @@ import { useI18n } from "@/lib/i18n";
 import { useSupabaseSession } from "@/hooks/use-supabase-session";
 import {
   getBuildArtifactUrl,
+  getBuildEngineStatus,
   listPwaBuilds,
   requestPwaBuild,
   validatePwa,
+  type BuildEngineStatus,
   type PwaBuildRow,
   type PwaValidation,
 } from "@/lib/pwa-build.functions";
@@ -73,8 +75,17 @@ export function PwaConverter() {
   const runRequest = useServerFn(requestPwaBuild);
   const runArtifact = useServerFn(getBuildArtifactUrl);
   const fetchBuilds = useServerFn(listPwaBuilds);
+  const fetchEngine = useServerFn(getBuildEngineStatus);
 
   const isAuthenticated = useSupabaseSession();
+
+  const engine = useQuery<BuildEngineStatus>({
+    queryKey: ["build-engine-status"],
+    queryFn: () => fetchEngine(),
+    enabled: isAuthenticated === true,
+    retry: false,
+    staleTime: 60_000,
+  });
 
   const builds = useQuery<PwaBuildRow[]>({
     queryKey: ["pwa-builds"],
@@ -267,8 +278,19 @@ export function PwaConverter() {
         </div>
       )}
 
+      {engine.data && engine.data.ok === false && (
+        <div className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+          <p className="flex items-start gap-2 font-medium">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+            Moteur de compilation indisponible
+          </p>
+          <p className="mt-1 pl-6 text-muted-foreground">{engine.data.message}</p>
+        </div>
+      )}
+
       <div className="surface-card rounded-2xl p-6">
         <h3 className="font-display text-lg font-semibold">Historique des builds</h3>
+
 
         {builds.isError && (
           <div className="mt-3 text-sm text-muted-foreground">
