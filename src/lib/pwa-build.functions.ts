@@ -500,10 +500,7 @@ export const requestPwaBuild = createServerFn({ method: "POST" })
         _artifact_path: null,
         _artifact_size_bytes: null,
         _error_code: dispatch.code,
-        _error_message:
-          dispatch.code === "NOT_CONFIGURED"
-            ? "Moteur de compilation non configuré."
-            : "Le moteur de compilation n'a pas pu être démarré.",
+        _error_message: DISPATCH_ERROR_MESSAGES[dispatch.code],
       });
       return { ok: false, code: dispatch.code };
     }
