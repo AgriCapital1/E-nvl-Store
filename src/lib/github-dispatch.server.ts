@@ -13,9 +13,25 @@ export interface AndroidBuildDispatch {
   themeColor?: string | null;
 }
 
+export type DispatchErrorCode =
+  | "NOT_CONFIGURED"
+  | "REPO_NOT_FOUND"
+  | "TOKEN_FORBIDDEN"
+  | "DISPATCH_FAILED";
+
 export type DispatchResult =
   | { ok: true }
-  | { ok: false; code: "NOT_CONFIGURED" | "DISPATCH_FAILED"; detail?: string };
+  | { ok: false; code: DispatchErrorCode; detail?: string };
+
+/** Message lisible (FR) associé à un code d'échec de démarrage du moteur. */
+export const DISPATCH_ERROR_MESSAGES: Record<DispatchErrorCode, string> = {
+  NOT_CONFIGURED: "Moteur de compilation non configuré.",
+  REPO_NOT_FOUND:
+    "Le dépôt de compilation est introuvable : synchronisez le projet sur GitHub et vérifiez GITHUB_BUILD_REPO.",
+  TOKEN_FORBIDDEN:
+    "Accès refusé par le moteur de compilation : le jeton GitHub doit avoir la permission Contents (lecture/écriture).",
+  DISPATCH_FAILED: "Le moteur de compilation n'a pas pu être démarré.",
+};
 
 /** URL publique de l'application (pour le callback du worker). */
 function publicBaseUrl(): string {
